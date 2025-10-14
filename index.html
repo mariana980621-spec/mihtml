@@ -1,0 +1,336 @@
+<!-- 💙💛 INICIO DEL DOCUMENTO HTML 💙💛 -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title> Prueba de Asistente UNAM</title>
+<link rel="icon" type="image/png" href="school.png">
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    background-image: url('https://www.mexicoescultura.com/galerias/espacios/principal/explanada2.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #6e97f5;
+    filter: brightness(1.08) contrast(1.1);
+  }
+
+  #assistant-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 70px;
+    height: 70px;
+    cursor: pointer;
+    border-radius: 50%;
+    background-color: #012169;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  }
+
+  #assistant-icon img { width: 50px; height: 50px; }
+
+  #chat-box-container {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    width: 380px;
+    height: 520px;
+    background-color: rgba(255,255,255,0.97);
+    border: 3px solid #FFD700;
+    border-radius: 15px;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    overflow: hidden;
+    z-index: 999;
+  }
+
+  .chat-header {
+    background-color: #012169;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .chat-header img { width: 25px; height: 25px; }
+
+  .chat-content {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .input-area {
+    display: flex;
+    border-top: 1px solid #ddd;
+  }
+
+  .input-area input {
+    flex-grow: 1;
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .input-area button {
+    background-color: #FFD700;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+  }
+
+  .message {
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    max-width: 85%;
+  }
+
+  .user {
+    background-color: rgba(1,33,105,0.8);
+    color: white;
+    align-self: flex-end;
+  }
+
+  .bot {
+    background-color: rgba(224,224,224,0.9);
+    align-self: flex-start;
+  }
+
+  details {
+    background-color: #012169;
+    color: white;
+    margin: 6px 0;
+    border-radius: 8px;
+    padding: 6px;
+  }
+
+  details summary {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 5px;
+  }
+
+  details[open] summary { color: #FFD700; }
+
+  .faq-btn {
+    background-color: #f9f9f9;
+    color: #012169;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 6px;
+    margin: 3px 0;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .faq-btn:hover {
+    background-color: #FFD700;
+    color: #012169;
+  }
+</style>
+</head>
+<body>
+
+<!-- 🔹 ICONO DEL CHATBOT -->
+<div id="assistant-icon">
+  <img src="chatbot.png" alt="UNAM">
+</div>
+
+<!-- 🔹 CAJA DEL CHAT -->
+<div id="chat-box-container">
+  <div class="chat-header">
+    <img src="escudo.png" alt="Logo UNAM"> 
+    Asistente UNAM
+  </div>
+  <div id="chat-content" class="chat-content"></div>
+  <div class="input-area">
+    <input type="text" id="user-input" placeholder="Escribe tu mensaje..." />
+    <button id="send-btn">Enviar</button>
+  </div>
+</div>
+
+<script>
+  const assistantIcon = document.getElementById('assistant-icon');
+  const chatBoxContainer = document.getElementById('chat-box-container');
+  const chatContent = document.getElementById('chat-content');
+  const userInput = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  let firstHello = false;
+
+  assistantIcon.addEventListener('click', () => {
+    chatBoxContainer.style.display = chatBoxContainer.style.display === 'flex' ? 'none' : 'flex';
+    if (chatContent.innerHTML.trim() === '') {
+      typeMessage("👋 Bienvenido. Escribe 'hola' para comenzar la conversación.");
+    }
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+  userInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+
+  function typeMessage(text, speed = 25) {
+    let i = 0;
+    const message = document.createElement('div');
+    message.classList.add('message', 'bot');
+    chatContent.appendChild(message);
+    function type() {
+      if (i < text.length) {
+        message.innerHTML = `<strong>Bot:</strong> ${text.slice(0, i + 1)}`;
+        i++;
+        chatContent.scrollTop = chatContent.scrollHeight;
+        setTimeout(type, speed);
+      }
+    }
+    type();
+  }
+
+  function appendMessage(sender, text, cls) {
+    const m = document.createElement('div');
+    m.classList.add('message', cls);
+    m.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    chatContent.appendChild(m);
+    chatContent.scrollTop = chatContent.scrollHeight;
+  }
+
+  function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+    appendMessage('Tú', text, 'user');
+    userInput.value = '';
+    setTimeout(() => handleBotLogic(text.toLowerCase()), 600);
+  }
+
+  function handleBotLogic(input) {
+    if (!firstHello && input.includes('hola')) {
+      firstHello = true;
+      typeMessage("¡Hola! 💛 Soy tu asistente virtual de la UNAM.");
+      setTimeout(() => {
+        typeMessage("💬 Estas son las preguntas frecuentes. Elige una categoría para consultar las respuestas:");
+        showFAQ();
+      }, 1500);
+      return;
+    }
+
+    if (!firstHello) {
+      typeMessage("Por favor, escribe 'hola' para iniciar la conversación. 👋");
+      return;
+    }
+
+    if (input.includes('gracias')) {
+      typeMessage("¡Con gusto! 💙 Espero haberte ayudado. 😊");
+      return;
+    }
+
+    if (input.includes('adiós') || input.includes('bye')) {
+      typeMessage("¡Hasta pronto! 👋");
+      return;
+    }
+
+    typeMessage("No entendí tu mensaje, pero puedes abrir las categorías de preguntas frecuentes. 👇");
+  }
+
+  const faqSections = [
+    { title: "🔐 Usuario y Contraseña", items: [
+      ["¿Qué usuario y contraseña debo utilizar para inscribirme al curso?", "Usa tu correo institucional y la contraseña de la Oficina Virtual."],
+      ["¿Por qué cuando pongo mi usuario y contraseña me dice datos erróneos?", "Verifica mayúsculas y minúsculas. Si el error continúa, solicita restablecer tu contraseña."],
+      ["¿Cuál es mi usuario y contraseña?", "Tu usuario es tu RFC o correo institucional, y la contraseña es la de tu cuenta de Oficina Virtual."],
+      ["Ya puse mi RFC y número de empleado y no puedo entrar a la oficina virtual. ¿Usted me puede dar mi contraseña?", "Por seguridad no se entregan contraseñas. Usa la opción 'Olvidé mi contraseña'."],
+      ["¿Por qué cuando me quiero inscribir no veo el curso solo me aparece usuario y contraseña?", "Debes iniciar sesión con tu cuenta institucional para ver el contenido."],
+      ["¿Por qué la página de capacitación me aparece en inglés?", "Ve a configuración de tu navegador y cambia el idioma a Español (México)."]
+    ]},
+    { title: "🧾 Inscripción y Acceso a Cursos", items: [
+      ["¿Por qué no encuentro en la plataforma el curso al que me invitaron?", "Revisa si el curso ya fue publicado. Si no lo ves, puede no estar activo aún. Consulta con tu responsable de capacitación."],
+      ["¿Cómo me puedo inscribir a un curso?", "Sigue estos pasos:<br>1️⃣ Inicia sesión en la plataforma.<br>2️⃣ Ve a 'Cursos disponibles'.<br>3️⃣ Da clic en 'Inscribirme'.<br>4️⃣ Espera tu confirmación por correo."],
+      ["¿Por qué me rechazaron del curso de cómputo?", "Puede ser por cupo lleno o falta de requisitos. Contacta a la Subdirección de Capacitación para más detalles."],
+      ["Al formulario le di enviar respuestas, ¿cómo puedo saber si quedé inscrita?", "Recibirás confirmación por correo electrónico en un máximo de 48 horas."],
+      ["El curso empezó hoy, ¿todavía me puedo inscribir?", "Depende del tipo de curso; algunos aceptan inscripciones dentro de las primeras 24 horas."],
+      ["Me inscribí al curso… ¿por qué no me ha llegado la confirmación?", "Espera hasta 48 horas hábiles. Si no llega, revisa la carpeta de spam."],
+      ["No encuentro el curso en el que estoy inscrita, ¿cómo entro?", "Ve a 'Mis cursos' en la plataforma. Si no aparece, actualiza la página o cambia de navegador."],
+      ["¿Por qué no puedo inscribirme en la plataforma?", "Verifica que no hayas alcanzado el límite de 6 cursos por año o contacta soporte técnico."]
+    ]},
+    { title: "🧠 Contenido o Repetición de Cursos", items: [
+      ["Ya tomé el curso de Relaciones Laborales en el 2016, ¿es necesario volverlo a tomar?", "Solo si la versión actual tiene contenido actualizado o tu área lo solicita."],
+      ["El curso tal..., ¿tiene cambios sustanciales que valga la pena volverlo a tomar?", "Revisa el temario del curso actual; si cambió el contenido o enfoque, se recomienda repetirlo."],
+      ["¿Cuántos cursos puedo tomar en el año?", "El máximo permitido es de 6 cursos por año calendario."],
+      ["¿Cuántos cursos puedo tomar al mismo tiempo?", "Hasta 2 cursos simultáneamente, siempre que los horarios no se crucen."],
+      ["¿Cuántas veces puedo tomar el mismo curso?", "Puedes repetirlo si cambió la versión o el contenido."],
+      ["No soy personal de la UNAM, ¿puedo tomar cursos de cómputo?", "No, los cursos están dirigidos al personal UNAM activo."],
+      ["Soy hijo de una trabajadora, ¿cómo me puedo inscribir a sus cursos?", "Los cursos son exclusivos para trabajadores activos o con permiso de capacitación."],
+      ["¿Los cursos de cómputo tienen costo?", "No, todos los cursos son gratuitos para personal UNAM."],
+      ["Si soy de nuevo ingreso, ¿puedo tomar el taller de Redacción Básica?", "Sí, está disponible para personal nuevo."]
+    ]},
+    { title: "🕓 Fechas, Programación y Modalidad", items: [
+      ["¿Todavía está programado para la misma fecha el curso tal?", "Verifica la fecha directamente en la plataforma o el correo institucional; las circulares pueden cambiar."],
+      ["¿Por qué en la circular DGPe/035/2023 dice una fecha y en la plataforma otra?", "La fecha más reciente es la que aparece en la plataforma, ya que ahí se reflejan los cambios."],
+      ["¿Qué instructor va a impartir el curso?", "El nombre aparece en la descripción del curso o en el correo de confirmación."],
+      ["¿Todavía no hay cursos presenciales?", "Por ahora la mayoría son virtuales; los presenciales se anunciarán próximamente."],
+      ["¿Puedo hacer la evaluación de cómputo ahorita?", "Solo dentro de las fechas de aplicación indicadas en la plataforma."],
+      ["¿Cuándo es la evaluación de inglés y cómputo?", "Consulta las fechas en el calendario oficial del portal de capacitación."],
+      ["Ayer no pude entrar al curso, ¿por qué ya no me deja hacer la evaluación?", "El sistema bloquea el acceso fuera de las fechas asignadas. Contacta al administrador."],
+      ["Hoy no pude hacer el curso Bienvenida a la UNAM, ¿lo puedo hacer mañana?", "Sí, siempre y cuando siga activo en la plataforma."]
+    ]},
+    { title: "💬 Zoom y Asistencia", items: [
+      ["¿Por qué no he recibido la liga para entrar a la reunión de Zoom?", "Se envía 24 horas antes del inicio. Si no la recibes, revisa spam o contacta soporte."],
+      ["¿Sí va a haber reunión Zoom?", "Sí, si el curso lo indica. La liga aparecerá en el módulo correspondiente."],
+      ["¿En qué parte del curso está el link para entrar al Zoom?", "Dentro del módulo 'Sesiones en vivo' o en los anuncios del curso."],
+      ["¿Cómo registro mi asistencia del curso por Zoom?", "Ingresa a la sesión con tu nombre completo y el correo con el que te inscribiste."]
+    ]},
+    { title: "📜 Constancias y Evaluaciones", items: [
+      ["¿Cuánto saqué en el curso? No puedo ver la calificación.", "Las calificaciones aparecen al finalizar el curso en la sección 'Historial de cursos'."],
+      ["¿Cómo puedo saber si aprobé el curso?", "Al finalizar, tu calificación aparecerá como 'Aprobado' en tu historial."],
+      ["Tomé el curso, ¿cuánto tardan en darme la constancia?", "En promedio de 5 a 10 días hábiles después de concluir el curso."],
+      ["¿En dónde encuentro mi constancia?", "En la Oficina Virtual, sección 'Constancias'."],
+      ["¿Por qué no puedo descargar mis constancias?", "Verifica que tu navegador permita descargas y desactiva bloqueadores de ventanas emergentes."]
+    ]},
+    { title: "🏢 Oficina Virtual y DGPE", items: [
+      ["¿Cómo entro a la oficina virtual?", "Entra a https://oficinavirtual.unam.mx e inicia sesión con tus datos institucionales."],
+      ["¿En qué parte de la oficina virtual están las constancias?", "Dentro de 'Historial de cursos' selecciona 'Descargar constancia'."],
+      ["Estoy en la página de la DGPE, ¿en qué parte puedo ver el programa de capacitación?", "En el menú principal selecciona 'Programas' y luego 'Capacitación vigente'."]
+    ]},
+    { title: "📨 Trámites Administrativos", items: [
+      ["¿En dónde están ubicados?, para enviar correspondencia.", "Dirección: Av. Universidad 3000, C.U., Alcaldía Coyoacán, CDMX, C.P. 04510."],
+      ["¿Cuál es la extensión de tal área?", "Comunícate al conmutador UNAM 5622 1700 y pide la extensión de la Subdirección de Capacitación."],
+      ["¿Es necesario enviar en físico el oficio de autorización?", "No, basta con enviarlo escaneado al correo institucional del área correspondiente."],
+      ["¿Mi jefe debe mandar un oficio autorizando mi participación?", "Sí, el oficio firmado es necesario para formalizar la inscripción."],
+      ["¿Si entro a la plataforma, puedo inscribir a mi jefe?", "No, cada participante debe realizar su propio registro con sus datos personales."]
+    ]}
+  ];
+
+  function showFAQ() {
+    faqSections.forEach(sec => {
+      const det = document.createElement('details');
+      const sum = document.createElement('summary');
+      sum.textContent = sec.title;
+      det.appendChild(sum);
+      sec.items.forEach(([q,a]) => {
+        const b = document.createElement('button');
+        b.classList.add('faq-btn');
+        b.textContent = q;
+        b.onclick = () => {
+          appendMessage("Tú", q, "user");
+          typeMessage(a);
+        };
+        det.appendChild(b);
+      });
+      chatContent.appendChild(det);
+    });
+    chatContent.scrollTop = chatContent.scrollHeight;
+  }
+</script>
+</body>
+</html>
+<!-- 💙💛 FIN DEL DOCUMENTO HTML 💙💛 -->
