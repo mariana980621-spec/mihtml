@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>PumAI </title>
+<link rel="icon" type="image/png" href="img/chatbot2.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* Reset básico */
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif;}
+
+body {
+  height: 100vh;                                    /* Establece la altura al 100% de la ventana visible (viewport) */
+  background-image: url('img/captura.png');         /* Define la imagen de fondo. ¡Cambia la ruta! */
+  background-size: cover;                           /* Asegura que la imagen cubra todo el body sin dejar espacios */
+  background-position: center;                      /* Centra la imagen de fondo */
+  background-repeat: no-repeat;                     /* Evita que la imagen de fondo se repita (en mosaico) */
+  background-attachment: fixed;                     /* Mantiene la imagen de fondo fija al hacer scroll */
+  display: flex;                                    /* Convierte el body en un contenedor flexible (Flexbox) */
+  justify-content: center;                          /* Centra el contenido secundario horizontalmente */
+  align-items: center;                              /* Centra el contenido secundario verticalmente */
+  filter: brightness(1.08) contrast(1.1);           /* Aplica filtros visuales: más brillo (1.08) y contraste (1.1) */
+  }
+
+/* Botón flotante */
+#assistant-icon {
+  position: fixed;                 /* Mantiene el elemento en una posición fija en la ventana, sin moverse al hacer scroll */
+  bottom: 20px;                    /* Fija la posición a 20 píxeles del borde inferior de la ventana */
+  right: 20px;                     /* Fija la posición a 20 píxeles del borde derecho de la ventana */
+  width: 70px;                     /* Establece el ancho del elemento a 70 píxeles */
+  height: 70px;                    /* Establece la altura del elemento a 70 píxeles */
+  border-radius: 50%;              /* Le da un radio de borde del 50%, haciendo que el elemento sea un círculo perfecto */
+  background: #ffffff;           /* Establece el color de fondo del círculo a blanco */
+  display: flex;                   /* Convierte el elemento en un contenedor flexible (Flexbox) */
+  justify-content: center;         /* Centra horizontalmente el contenido interno (el icono o texto) */
+  align-items: center;             /* Centra verticalmente el contenido interno (el icono o texto) */
+  cursor: pointer;                 /* Cambia el cursor a una mano/puntero para indicar que es un elemento clickable */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Agrega una sombra al elemento para que sobresalga de la página */
+  transition: transform 0.2s;      /* Suaviza la transición de la propiedad 'transform' durante 0.2 segundos (para efectos al pasar el ratón) */
+  }
+
+#assistant-icon:hover {
+  transform: scale(1.1);           /* Aumenta el tamaño del icono en un 10% (1.1 veces) al pasar el ratón, creando un efecto de zoom */
+}
+
+#assistant-icon img {
+  width: 52px;                 /* Fija el ancho de la imagen interna a 52 píxeles */
+  height: 52px;                /* Fija la altura de la imagen interna a 52 píxeles */
+}
+
+/* Contenedor del chat */
+#chat-box-container {
+  position: fixed;                 /* Mantiene la caja de chat en una posición fija en la ventana (no se mueve al hacer scroll) */
+  bottom: 100px;                   /* Fija la posición a 100 píxeles del borde inferior de la ventana */
+  right: 20px;                     /* Fija la posición a 20 píxeles del borde derecho de la ventana */
+  width: 380px;                    /* Establece el ancho fijo de la caja de chat a 380 píxeles */
+  max-height: 520px;               /* Limita la altura máxima de la caja a 520 píxeles */
+  background: rgba(255,255,255,0.97); /* Establece un fondo blanco con una ligera transparencia (97% de opacidad) */
+  border-radius: 15px;             /* Redondea las esquinas de la caja de chat con un radio de 15 píxeles */
+  display: none;                   /* Inicialmente oculta la caja de chat, que será mostrada con JavaScript */
+  flex-direction: column;          /* Organiza los elementos internos (Flexbox) en una columna vertical */
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3); /* Agrega una sombra al contenedor para darle profundidad */
+  overflow: hidden;                /* Recorta cualquier contenido que se desborde fuera de los límites de la caja */
+  z-index: 999;                    /* Asegura que la caja de chat aparezca por encima de casi todos los demás elementos de la página */
+}
+
+/* Header */
+.chat-header {
+  background: #012169;           /* Establece el color de fondo del encabezado (un azul oscuro) */
+  color: white;                  /* Establece el color del texto dentro del encabezado a blanco */
+  font-weight: bold;             /* Hace que la fuente del texto sea negrita (bold) */
+  padding: 10px;                 /* Agrega un relleno (espacio interno) de 10 píxeles alrededor del contenido */
+  display: flex;                 /* Convierte el encabezado en un contenedor flexible (Flexbox) */
+  align-items: center;           /* Centra los elementos internos verticalmente */
+  justify-content: center;       /* Centra los elementos internos horizontalmente */
+  gap: 8px;                      /* Agrega un espacio de 8 píxeles entre los elementos internos (como el texto y la imagen) */
+  border-top-left-radius: 15px;  /* Redondea la esquina superior izquierda con un radio de 15 píxeles */
+  border-top-right-radius: 15px; /* Redondea la esquina superior derecha con un radio de 15 píxeles */
+}
+
+.chat-header img {
+  width: 25px;                   /* Fija el ancho de cualquier imagen dentro del encabezado a 25 píxeles */
+  height: 25px;                  /* Fija la altura de cualquier imagen dentro del encabezado a 25 píxeles */
+}
+/* Contenido */
+.chat-content {
+  flex-grow: 1;                  /* Permite que este elemento crezca y ocupe todo el espacio vertical disponible en el contenedor padre (chat-box-container) */
+  padding: 10px;                 /* Agrega un relleno (espacio interno) de 10 píxeles alrededor de todo el contenido */
+  overflow-y: auto;              /* Agrega una barra de desplazamiento vertical automática si el contenido excede la altura máxima */
+  display: flex;                 /* Convierte el contenido en un contenedor flexible (Flexbox) */
+  flex-direction: column;        /* Apila los mensajes internos verticalmente, de arriba abajo */
+  gap: 8px;                      /* Agrega un espacio vertical de 8 píxeles entre los mensajes */
+}
+
+/* Mensajes */
+.message {
+  padding: 8px 12px;             /* Agrega relleno: 8px arriba/abajo y 12px izquierda/derecha */
+  border-radius: 10px;           /* Redondea las esquinas de cada burbuja de mensaje */
+  max-width: 85%;                /* Limita el ancho máximo de cada mensaje al 85% del contenedor padre */
+  word-wrap: break-word;         /* Asegura que las palabras muy largas se rompan y pasen a la siguiente línea, evitando desbordamientos horizontales */
+}
+
+.user {
+  background: rgba(1,33,105,0.8); /* Establece un fondo azul oscuro semi-transparente (80% de opacidad) para los mensajes del usuario */
+  color: white;                  /* Establece el color del texto a blanco para contrastar con el fondo oscuro */
+  align-self: flex-end;          /* Alinea la burbuja de mensaje a la DERECHA del contenedor (Flexbox) */
+}
+
+.bot {
+  background: rgba(224,224,224,0.9); /* Establece un fondo gris claro semi-transparente (90% de opacidad) para los mensajes del bot */
+  align-self: flex-start;        /* Alinea la burbuja de mensaje a la IZQUIERDA del contenedor (Flexbox) */
+}
+
+/* Input */
+.input-area {
+  display: flex;                 /* Convierte el área de entrada en un contenedor flexible (Flexbox) para alinear el campo de texto y el botón */
+  border-top: 1px solid #ddd;    /* Agrega una línea gris claro (borde superior) para separar el área de entrada del historial de chat */
+}
+
+.input-area input {
+  flex-grow: 1;                 /* Permite que el campo de entrada ocupe todo el espacio horizontal restante en el contenedor Flexbox (`.input-area`) */
+  border: none;                   /* Elimina cualquier borde predeterminado del campo de entrada */
+  padding: 10px;                  /* Agrega un relleno (espacio interno) de 10 píxeles alrededor del texto dentro del campo */
+  font-size: 14px;                /* Establece el tamaño de la fuente del texto a 14 píxeles */
+  outline: none;                  /* Elimina el contorno (generalmente azul o negro) que aparece cuando el campo está enfocado (haciendo clic en él) */
+}
+
+.input-area button {
+  background: #FFD700;           /* Establece el color de fondo del botón a dorado (Gold) */
+  border: none;                   /* Elimina cualquier borde predeterminado del botón */
+  padding: 10px 15px;             /* Agrega relleno: 10px arriba/abajo y 15px izquierda/derecha */
+  cursor: pointer;                /* Cambia el cursor a una mano/puntero, indicando que es un elemento clickable */
+  font-weight: bold;              /* Hace que el texto del botón sea negrita (bold) */
+  transition: 0.2s;               /* Suaviza cualquier cambio de estilo (como el color de fondo en hover) durante 0.2 segundos */
+}
+
+.input-area button:hover {
+  background: #e6c200;           /* Cambia el color de fondo del botón a un dorado ligeramente más oscuro cuando el ratón pasa por encima */
+}
+
+/* Botones FAQ y Feedback */
+details {
+  background-color: #91b5eb;       /* Establece el color de fondo del contenedor (un azul claro) */
+  color: white;                    /* Establece el color del texto dentro del contenedor a blanco */
+  margin: 2px 0;                   /* Agrega un margen de 2 píxeles arriba y abajo, y 0 a los lados, para separarlo de otros elementos */
+  border-radius: 8px;              /* Redondea las esquinas del contenedor con un radio de 8 píxeles */
+  padding: 3px 4px;                /* Agrega un relleno (espacio interno) de 3 píxeles arriba/abajo y 4 píxeles izquierda/derecha */
+}
+
+details summary {
+  cursor: pointer;                 /* Cambia el cursor a una mano/puntero, indicando que este elemento es interactivo y clickable */
+  font-weight: bold;               /* Hace que el texto del sumario (el título visible) sea negrita */
+  padding: 5px;                    /* Agrega un relleno (espacio interno) de 5 píxeles alrededor del texto del sumario */
+  font-size: 16px;                 /* Establece el tamaño de la fuente a 16 píxeles */
+  font-family: 'verdana';          /* Establece la fuente del texto a 'Verdana' (si está disponible) */
+  color: black;                    /* Establece el color del texto del sumario a negro */
+}
+
+details[open] summary {
+  color: black;                    /* Mantiene el color del texto del sumario en negro cuando el contenido está desplegado (abierto) */
+}
+
+.faq-btn {
+  background-color: #f9f9f9;       /* Establece un color de fondo gris muy claro para el botón */
+  color: #012169;                  /* Establece el color del texto del botón a azul oscuro */
+  border: 1px solid #ccc;          /* Agrega un borde delgado (1px) de color gris claro alrededor del botón */
+  border-radius: 5px;              /* Redondea ligeramente las esquinas del botón con un radio de 5 píxeles */
+  padding: 6px;                    /* Agrega un relleno (espacio interno) de 6 píxeles alrededor del texto */
+  margin: 3px 0;                   /* Agrega un margen de 3 píxeles arriba y abajo, y 0 a los lados, para separarlo de otros botones */
+  text-align: left;                /* Alinea el texto del botón a la izquierda */
+  cursor: pointer;                 /* Cambia el cursor a una mano/puntero, indicando que el botón es clickable */
+  width: 100%;                     /* Hace que el botón ocupe el 100% del ancho de su contenedor padre */
+  font-size: 14px;                 /* Establece el tamaño de la fuente a 14 píxeles */
+  font-family: 'Verdana', sans-serif; /* Establece la fuente del texto a Verdana (o una fuente sans-serif si no está disponible) */
+  line-height: 1.4;                /* Establece el espaciado entre líneas a 1.4 veces el tamaño de la fuente para mejor legibilidad */
+}
+
+.faq-btn:hover {
+  background-color: #FFD700;       /* Cambia el color de fondo a dorado cuando el ratón pasa por encima (efecto hover) */
+  color: #012169;                  /* Mantiene el color del texto en azul oscuro para el contraste */
+}
+
+.back-btn {
+  background-color: #012169;       /* Establece el color de fondo del botón a azul oscuro */
+  color: #FFD700;                  /* Establece el color del texto del botón a dorado (para alto contraste) */
+  width: 100%;                     /* Hace que el botón ocupe el 100% del ancho de su contenedor padre */
+  padding: 6px;                    /* Agrega un relleno (espacio interno) de 6 píxeles alrededor del texto */
+  margin: 5px 0;                   /* Agrega un margen de 5 píxeles arriba y abajo, y 0 a los lados, para separarlo */
+  border-radius: 5px;              /* Redondea ligeramente las esquinas del botón con un radio de 5 píxeles */
+  cursor: pointer;                 /* Cambia el cursor a una mano/puntero, indicando que el botón es clickable */
+}
+
+.back-btn:hover {
+  background-color: #FFD700;       /* Invierte el color de fondo a dorado cuando el ratón pasa por encima */
+  color: #012169;                  /* Invierte el color del texto a azul oscuro cuando el ratón pasa por encima */
+}
+
+.feedback-btn {
+  background-color: #FFD700;       /* Establece el color de fondo del botón a dorado */
+  color: #012169;                  /* Establece el color del texto del botón a azul oscuro */
+  margin: 5px 3px;                 /* Agrega un margen de 5 píxeles arriba/abajo y 3 píxeles izquierda/derecha para espaciarlo de otros elementos */
+  padding: 5px 10px;               /* Agrega un relleno (espacio interno) de 5 píxeles arriba/abajo y 10 píxeles izquierda/derecha */
+  border-radius: 5px;              /* Redondea las esquinas del botón con un radio de 5 píxeles */
+  border: none;                    /* Elimina cualquier borde predeterminado del botón */
+  cursor: pointer;                 /* Cambia el cursor a una mano/puntero, indicando que el botón es clickable */
+}
+
+.feedback-btn:hover {
+  background-color: #012169;       /* Invierte el color de fondo a azul oscuro cuando el ratón pasa por encima */
+  color: #FFD700;                  /* Invierte el color del texto a dorado cuando el ratón pasa por encima */
+}
+
+@media screen and (max-width: 600px) {
+  #chat-box-container {
+    width: 90%;
+    right: 5%;
+    bottom: 90px;
+    max-height: 75vh;
+  }
+  #assistant-icon {
+    width: 60px;
+    height: 60px;
+    bottom: 15px;
+    right: 15px;
+  }
+  #assistant-icon img { width: 45px; height: 45px; }
+  .chat-header { font-size: 14px; }
+  .input-area input { font-size: 13px; }
+  .faq-btn { font-size: 13px; }
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+.chat-content {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+</style>
+</head>
+<body>
+
+<!-- Botón flotante -->
+<div id="assistant-icon"><img src="img/asistencia.gif" alt="Chatbot"></div> 
+
+<!-- Chat -->
+<div id="chat-box-container">
+  <div class="chat-header">
+    <img src="img/pumas.gif" alt="Logo UNAM"> PumAI 🐾
+  </div>
+  <div id="chat-content" class="chat-content"></div>
+  <div class="input-area">
+    <input type="text" id="user-input" placeholder="Escribe tu mensaje..." />
+    <button id="send-btn">Enviar</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+
+<script>
+// 🔹 Configuración Firebase
+// ✅ Configuración y modo sin conexión
+let offlineMode = !navigator.onLine;
+
+// Solo inicializa Firebase si hay internet
+if (!offlineMode) {
+  const firebaseConfig = {
+    apiKey: "AIzaSyAhvjxgrTdlk95zZIZEyuVkUQqFLwy7f34",
+    authDomain: "aura-8e04e.firebaseapp.com",
+    databaseURL: "https://aura-8e04e-default-rtdb.firebaseio.com",
+    projectId: "aura-8e04e",
+    storageBucket: "aura-8e04e.firebasestorage.app",
+    messagingSenderId: "112158125985",
+    appId: "1:112158125985:web:27d0af1519c040677d65e0",
+    measurementId: "G-H17VPQCS6F"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  var database = firebase.database();
+  console.log("✅ Firebase inicializado correctamente");
+} else {
+  console.warn("⚠️ Modo sin conexión activado: Firebase deshabilitado.");
+
+}
+
+
+// Variables
+const assistantIcon = document.getElementById('assistant-icon'); // Selecciona el botón flotante del asistente.
+const chatBoxContainer = document.getElementById('chat-box-container'); // Selecciona el contenedor de la ventana de chat.
+const chatContent = document.getElementById('chat-content'); // Selecciona el área de visualización de mensajes (historial).
+const userInput = document.getElementById('user-input'); // Selecciona el campo de texto donde el usuario escribe.
+const sendBtn = document.getElementById('send-btn'); // Selecciona el botón de enviar mensaje.
+
+let firstHello = false; // Bandera: Indica si el saludo inicial del bot ya ha sido enviado (falso por defecto).
+let waitingFeedback = false; // Bandera: Indica si el sistema está esperando una respuesta de "sí/no" sobre la utilidad de la respuesta.
+let waitingComment = false; // Bandera: Indica si el sistema está esperando un comentario de texto adicional del usuario.
+let waitingMoreHelp = false; // Bandera: Indica si el sistema está esperando una confirmación o nueva solicitud de ayuda.
+// Variable para "¿Necesitas algo más?"
+
+// Función para verificar conexión a internet
+function checkInternetConnection() {
+  if (!navigator.onLine) {
+    typeMessage("⚠️ ¡Atención! Por el momento no podemos asistirte debido a problemas de conexión a internet.");
+    return false;
+  }
+  return true;
+}
+
+// Función para cerrar conversación
+function closeConversation() {
+  typeMessage("¡Hasta pronto! 👋 Gracias por usar PumAI.");
+  setTimeout(() => {
+    chatBoxContainer.style.display='none';
+    chatContent.innerHTML="";
+    firstHello=false;
+    waitingFeedback=false;
+    waitingComment=false;
+    waitingMoreHelp=false;
+  }, 3000); // Aumentado a 3 segundos para que se quede más tiempo
+}
+
+// Mostrar/Ocultar chat
+assistantIcon.onclick=()=>{
+  chatBoxContainer.style.display=chatBoxContainer.style.display==='flex'?'none':'flex';
+  if(!firstHello){
+    chatContent.innerHTML="";
+    typeMessage("👋 Bienvenido. Soy <b>PumAI</b> 🐾 tu compañero virtual de la UNAM. Escribe 'Hola' para comenzar.");
+  }
+};
+
+// Enviar mensaje
+sendBtn.addEventListener('click',sendMessage);
+userInput.addEventListener('keypress',e=>{if(e.key==='Enter') sendMessage();});
+
+// Append y Type
+function appendMessage(sender,text,cls){
+  const m=document.createElement('div');
+  m.classList.add('message',cls);
+  m.innerHTML=`<strong>${sender}:</strong> ${text}`;
+  chatContent.appendChild(m);
+  chatContent.scrollTop=chatContent.scrollHeight;
+}
+
+function typeMessage(text,speed=25){
+  let i=0;
+  const message=document.createElement('div');
+  message.classList.add('message','bot');
+  chatContent.appendChild(message);
+
+  function type(){
+    if(i<text.length){
+      message.innerHTML=`<strong>PumAI:</strong> ${text.slice(0,i+1)}`;
+      i++;
+      chatContent.scrollTop=chatContent.scrollHeight;
+      setTimeout(type,speed);
+    }
+  }
+  type();
+}
+
+// Enviar mensaje 
+function sendMessage(){
+  const text=userInput.value.trim();
+  if(!text)return;
+
+  // Verificar conexión antes de enviar
+  if (!checkInternetConnection()) {
+    userInput.value = text; // Mantener el mensaje para reintentar
+    return;
+  }
+
+  appendMessage("Tú",text,"user");
+  userInput.value="";
+  setTimeout(()=>handleBotLogic(text),300);
+}
+
+function handleBotLogic(input){
+  // Verificar conexión antes de procesar
+  if (!checkInternetConnection()) {
+    return;
+  }
+
+  input=input.toLowerCase();
+
+  if(!firstHello && input.includes('hola')){
+    firstHello=true;
+    typeMessage("¡Hola! 💛 Soy PumAI. Puedes preguntarme cualquier duda o usar las categorías.");
+    setTimeout(()=>{showFAQ();},8000); 
+    return;
+  }
+  if(!firstHello){typeMessage("Por favor, escribe ' Hola' para iniciar la conversación. 👋");return;}
+
+  if(waitingComment){
+    waitingComment=true;
+    appendMessage("Tú",input,"user");
+    typeMessage("¡Gracias por tu comentario! La conversación ha terminado.");
+    guardarComentarioFirebase(input);
+    closeConversation();
+    return;
+  }
+
+  if(waitingMoreHelp){
+    if(input.includes('sí') || input.includes('si') || input.includes('necesito') || input.includes('más') || input.includes('si') || input.includes('sí')){
+      waitingMoreHelp = false;
+      typeMessage("¡Genial! ¿Qué más necesitas? Puedes preguntar o volver al menú con 'Menú'.");
+      return;
+    } else {
+      waitingMoreHelp = false;
+      showFeedbackButtons();
+      return;
+    }
+  }
+
+  if(waitingFeedback){ return; }
+
+  if(input.includes('gracias')){
+    showFeedbackButtons();
+    return;
+  }
+
+  if(input.includes('ver comentarios')){
+    mostrarComentariosFirebase();
+    return;
+  }
+
+  if(input.includes('adiós')||input.includes('bye')){
+    closeConversation();
+    return;
+  }
+
+  if(input.includes('menú') || input.includes('menu') || input.includes('categorias')){
+    showFAQ();
+    return;
+  }
+
+  let botReply = generateAdvancedReply(input);
+  typeMessage(botReply);
+  // Después de una respuesta general, preguntar si necesitan más ayuda
+  setTimeout(() => {
+    typeMessage("😊 ¿Necesitas algo más? Escribe 'Sí' para volver al menú principal o 'No' para finalizar.");
+    waitingMoreHelp = true;
+  }, 2000);
+}
+
+function generateAdvancedReply(input){
+  let reply=[];
+  if(/usuario|contraseña|login|clave/.test(input)){
+    reply.push("🔐 Para acceder, usa tu correo institucional y la contraseña de la Oficina Virtual.");
+  }
+  if(/curso|inscrib|matrícula|registro/.test(input)){
+    reply.push("📚 Para inscribirte, inicia sesión en la plataforma y busca 'Cursos disponibles'.");
+  }
+  if(/zoom|clase en línea|reunión/.test(input)){
+    reply.push("💻 Revisa el módulo de 'Sesiones en vivo' o el correo con el link de Zoom enviado 24 horas antes.");
+  }
+  if(/problema|error|fallo/.test(input)){
+    reply.push("⚠️ Si tienes problemas técnicos, intenta reiniciar la sesión o contacta soporte.");
+  }
+  if(/cursos disponibles|lista de cursos/.test(input)){
+    reply.push("📋 Aquí tienes algunos cursos populares en la plataforma UNAM: <br>1. Bienvenida a la UNAM (obligatorio para nuevos ingresos).<br>2. Cómputo Básico (gratuito, virtual).<br>3. Inglés Intermedio (con evaluación).<br>4. Redacción Administrativa.<br>Para más detalles, ve a 'Cursos disponibles' en la Oficina Virtual o pregunta por uno específico.");
+  }
+  if(reply.length===0){
+    reply.push("🤖 Gracias por tu duda. Estoy procesando la información y te recomiendo revisar la plataforma o contactar soporte si es urgente.");
+  }
+  return reply.join(" ");
+}
+// Feedback botones
+function showFeedbackButtons(){
+  waitingFeedback=true;
+  const container=document.createElement('div');
+  container.classList.add('message','PumAI');
+  const text=document.createElement('div');
+  text.innerHTML="😊👍 ¡Me alegra haberte ayudado! <br> ¿Te resolvió tu duda?";
+  container.appendChild(text);
+
+  const yesBtn=document.createElement('button');
+  yesBtn.textContent="👍 Sí";
+  yesBtn.classList.add('feedback-btn');
+  yesBtn.onclick=()=>{
+    waitingFeedback=false;
+    closeConversation();
+  };
+
+  const noBtn=document.createElement('button');
+  noBtn.textContent="👎 No";
+  noBtn.classList.add('feedback-btn');
+  noBtn.onclick=()=>{
+    waitingFeedback=false;
+    typeMessage("Lamento no haberte ayudado 😔. Por favor, escribe un comentario sobre tu experiencia:");
+    waitingComment=true;
+  };
+
+  container.appendChild(yesBtn);
+  container.appendChild(noBtn);
+  chatContent.appendChild(container);
+  chatContent.scrollTop=chatContent.scrollHeight;
+}
+
+// Firebase comentarios
+// ⚙️ Guardar comentario (compatible offline)
+function guardarComentarioFirebase(texto) {
+  if (offlineMode) {
+    typeMessage("💾 Guardado localmente (sin internet). Se subirá a Firebase cuando haya conexión.");
+    let guardados = JSON.parse(localStorage.getItem("comentariosOffline") || "[]");
+    guardados.push({ mensaje: texto, fecha: new Date().toISOString() });
+    localStorage.setItem("comentariosOffline", JSON.stringify(guardados));
+    return;
+  }
+  // Si hay internet, guarda en Firebase
+  const nuevaRef = database.ref('comentarios').push();
+  nuevaRef.set({ mensaje: texto, fecha: new Date().toISOString() });
+}
+
+// 📄 Mostrar comentarios (solo si hay conexión)
+function mostrarComentariosFirebase() {
+  if (offlineMode) {
+    typeMessage("⚠️ No se pueden cargar los comentarios porque estás sin conexión. Pero el resto del chat sigue activo. 😊");
+    return;
+  }
+
+  database.ref('comentarios').orderByChild('fecha').limitToLast(50).once('value', snapshot => {
+    const comentarios = snapshot.val();
+    if (!comentarios) {
+      typeMessage("📭 No hay comentarios guardados aún.");
+      return;
+    }
+    let texto = "🗂️ <strong>Comentarios guardados:</strong><br><br>";
+    Object.values(comentarios).forEach((c, i) => {
+      texto += `${i + 1}. [${new Date(c.fecha).toLocaleString()}] ${c.mensaje}<br>`;
+    });
+    typeMessage(texto);
+  });
+}
+
+// FAQ y preguntas 
+const faqSections = [
+ { title: "🔐 Usuario y Contraseña", items: [
+      ["¿Qué usuario y contraseña debo utilizar para inscribirme al curso?", "Su usuario es el RFC con homoclave (minúsculas). La contraseña inicial es <strong>Pac_2025</strong>; si ya la modificó en un evento anterior, utilice la asignada."],
+      ["¿Por qué cuando pongo mi usuario y contraseña me dice datos erróneos?", "<br> A) Asegúrese de escribir correctamente su RFC con homoclave en minúsculas. <br><br> B)Si no recuerda su contraseña puede llamar a las ext. 41805 y se la restableceremos para que coloque una nueva. "],
+      ["¿Cuál es mi usuario y contraseña?", ""],
+      ["Ya puse mi RFC y número de empleado y no puedo entrar a la oficina virtual. ¿Usted me puede dar mi contraseña?", ""],
+      ["¿Por qué cuando me quiero inscribir no veo el curso solo me aparece usuario y contraseña?", ""],
+      ["¿Por qué la página de capacitación me aparece en inglés?", ""]
+    ]},
+
+     { 
+    title: "🧾 Inscripción y Acceso a Cursos",items: [
+      ["¿Por qué no encuentro en la plataforma el curso al que me invitaron?", ""],
+      ["¿Cómo me puedo inscribir a un curso?", "Sigue estos pasos para inscribirte a un curso:<br>1️⃣ Entra al sitio de la Dirección General de Personal: <a href='https://www.personal.unam.mx' target='_blank'>https://www.personal.unam.mx </a><br>2️⃣ Da clic en la opción <strong>OFICINA VIRTUAL</strong> y teclea tu <strong>R.F.C.</strong> con homoclave y <strong>N.I.P.</strong> (si el(la) trabajador(a) no recuerda su NIP, debe acudir al Área de Personal de su dependencia de adscripción).<br>3️⃣ En el apartado <strong>Inscripción y Registro</strong>, da clic en la opción <strong>Inscripción a Eventos de Capacitación</strong>.<br>4️⃣ Verifica y/o actualiza tus <strong>DATOS PERSONALES</strong>.<br>5️⃣ Actualiza los datos del jefe que realiza la <strong>AUTORIZACIÓN DE LA INSCRIPCIÓN</strong>.<br>6️⃣ Da clic en el botón <strong>Guardar Datos Personales</strong>.<br>7️⃣ Para proceder a una inscripción, utiliza el botón <strong>Registrar Inscripción a Eventos</strong>.<br>8️⃣ En la lista desplegable <strong>Eventos</strong>, selecciona el nombre del curso al que deseas inscribirte (se encuentran en orden alfabético).<br>9️⃣ En la opción <strong>Fechas y Horarios del Evento</strong> seleccionado, da clic en la clave del curso que tenga la fecha y hora del evento convocado (por ejemplo, <strong>PAC288</strong>).<br>🔟 Presiona el botón <strong>Guardar Inscripción</strong>.<br>En la parte inferior de la ventana aparecerán todos los <strong>Registros de Inscripción</strong> del año actual."],
+      ["¿Por qué me rechazaron del curso de cómputo?", ""],
+      ["Al formulario le di enviar respuestas, ¿Cómo puedo saber si quedé inscrita?", ""],
+      ["El curso empezó hoy, ¿Todavía me puedo inscribir?", "Sí, comunicándose vía telefónica o correo electrónico. Se le dará atención si es viable por cuestiones de cupo."],
+      ["Me inscribí al curso… ¿Por qué no me ha llegado la confirmación?", "Comuníquese por teléfono o por correo electrónico para verificar la disponibilidad. La atención está sujeta al cupo existente."],
+      ["No encuentro el curso en el que estoy inscrita, ¿Cómo entro?", "Para acceder al desarrollo de cualquier evento de capacitación es necesario ingresar a nuestra plataforma Caplin desde la siguiente liga:<br><br>➡️ <a href='https://capacitacion.dgp.unam.mx/SCyE/' target='_blank'>https://capacitacion.dgp.unam.mx/SCyE/</a><br><br>🔹 Usuario: RFC con homoclave (en minúsculas)<br>🔹 Contraseña: <strong>Pac_2025</strong> o la propia si usted la personalizó."],
+      ["¿Por qué no puedo inscribirme en la plataforma?", "La inscripción está limitada a un máximo de 6 cursos por año. Si necesitas tomar este curso de manera excepcional, puedes solicitarlo enviando un correo a <a href='mailto:maribel.perez@dgp.unam.mx'>maribel.perez@dgp.unam.mx</a>."]
+    ]},
+
+
+     { title: "🧠 Contenido o Repetición de Cursos", items: [
+      ["Ya tomé el curso de Relaciones Laborales en el 2016, ¿Es necesario volverlo a tomar?", ""],
+      ["El curso tal..., ¿Tiene cambios sustanciales que valga la pena volverlo a tomar?", ""],
+      ["¿Cuántos cursos puedo tomar en el año?", "Cada persona trabajadora puede participar en máximo seis eventos de capacitación al año."],
+      ["¿Cuántos cursos puedo tomar al mismo tiempo?", "Para asegurar un mejor aprendizaje y dedicación, sugerimos que los cursos de su interés no se programen en las mismas fechas u horarios."],
+      ["¿Cuántas veces puedo tomar el mismo curso?", ""],
+      ["No soy personal de la UNAM, ¿Puedo tomar cursos de cómputo?", ""],
+      ["Soy hijo de una trabajadora, ¿Cómo me puedo inscribir a sus cursos?", ""],
+      ["¿Los cursos de cómputo tienen costó?", ""],
+      ["Si soy de nuevo ingreso, ¿Puedo tomar el taller de Redacción Básica?", ""],
+      ["🧠 CURSOS DISPONIBLES", "📋  Aquí tienes los <strong>subprogramas de capacitación</strong> y algunos cursos destacados de la plataforma UNAM: <br><br><strong>1. Actualización Técnico Administrativa </strong>.<br><strong>2. Identidad Institucional </strong>.<br><strong>3. Cultura de Calidad </strong>.<br>4. <strong>Desarrollo humano y organizacional.</strong> <br><strong>5. Mandos Medios y Disponible. </strong><br><strong>6. Procesos Administrativos. </strong><br><strong>7. Cultura informática. </strong><br><strong> 8. Igualdad de Género. </strong><br> <br> 🔹DIRECCION: Extienda 1 de la UNAM, frente al estacionamiento 3 del Estadio Olímpico Universitario. <br><br>➡️ Accede directamente aquí: <a href='https://www.personal.unam.mx/scye/' target='_blank'>https://www.personal.unam.mx/scye/</a>"]
+    ]},
+
+    { title: "🕓 Fechas, Programación y Modalidad", items: [
+      ["¿Todavía está programado para la misma fecha el curso tal?", ""],
+      ["¿Por qué en la circular DGPe/035/2023 dice una fecha y en la plataforma otra?", ""],
+      ["¿Qué instructor va a impartir el curso?", ""],
+      ["¿Todavía no hay cursos presenciales?", "Sí, la modalidad presencial ya se está llevando a cabo. Nuestras instalaciones se encuentran en…  <br><br> 🔹DIRECCION: Extienda 1 de la UNAM, frente al estacionamiento 3 del Estadio Olímpico Universitario."],
+      ["¿Puedo hacer la evaluación de cómputo ahorita?", ""],
+      ["¿Cuándo es la evaluación de inglés y cómputo?", ""],
+      ["Hoy no pude hacer el curso Bienvenida a la UNAM, ¿Lo puedo hacer mañana?", ""]
+    ]},
+
+   { title: "💬 Zoom y Asistencia", items: [
+      ["¿Por qué no he recibido la liga para entrar a la reunión de Zoom?", "La liga de acceso a las sesiones de zoom se encuentran dentro del desarrollo del curso, por lo cual es necesario ingresar a la Plataforma Caplin <br>➡️ Accede directamente aquí: <a href='https://capacitacion.dgp.unam.mx/SCyE/' target='_blank'>https://capacitacion.dgp.unam.mx/SCyE/</a>"],
+      ["¿Sí va a haber reunión Zoom?", ""],
+      ["¿En qué parte del curso está el link para entrar al Zoom?", "En el desarrollo del curso ubique el siguiente ícono:<br><img src='img/zoom_icono.png' alt='Ícono de reunión Zoom en el curso' style='max-width:100%; border-radius:10px; margin:8px 0;'><br> De clic y posteriormente en <strong>“Unirse a la reunión”</strong>:<br> <img src='img/zoom_unirse.png' alt='Botón Unirse a la reunión en el curso' style='max-width:100%; border-radius:10px; margin-top:8px;'>"],
+      ["¿Cómo le hago para registrar mi asistencia del curso por Zoom?", "El registro de asistencia es automático <strong>únicamente</strong> cuando se accede a la sesión de Zoom desde la Plataforma Caplin. Por favor, evite el uso directo de la liga o el ID de la sesión, ya que esto impedirá el registro de su participación."]
+    ]},
+
+    { title: "📜 Constancias y Evaluaciones", items: [
+      ["¿Cuánto saqué en el curso, no puedo ver la calificación?.", "La calificación y constancia está disponible en la oficina virtual después de transcurrir 10 días hábiles al término del evento."],
+      ["¿Cómo puedo saber si aprobé el curso?", ""],
+      ["Tomé el curso, ¿Cuánto tardan en darme la constancia?", "Si aprobó el curso con una calificación mínima de 8, la constancia estará disponible en la oficina virtual después de transcurrir 10 días hábiles al término del evento."],
+      ["¿En dónde encuentro mi constancia?", "La constancia puede ser descargada en formato electrónico diez días hábiles posteriores al término del evento, desde la Oficina Virtual que se encuentra en el sitio web de la Dirección General de Personal: <a href='https://www.personal.unam.mx' target='_blank'>https://www.personal.unam.mx</a>. <br>Para obtener su constancia, realice lo siguiente:<br>I. Ingresar a la <strong>Oficina Virtual</strong> con su usuario y contraseña (si desconoce estos datos, acuda al Departamento de Personal de la Secretaría o Unidad Administrativa de su dependencia).<br>II. Localizar la sección de <strong>Información Personal</strong> y hacer clic en la opción <strong>Expediente</strong>.<br>III. Seleccionar la opción <strong>Capacitación > Cursos Confianza</strong>.<br>IV. Identificar el nombre de este evento.<br>V. Hacer clic en el botón <strong>Descargar</strong>."],
+      ["¿Por qué no puedo descargar mis constancias?", ""],
+      ["📜 OBTENER MI CONSTANCIA", "🔹 Pasos para obtener tu constancia:<br>1️⃣ Ingresa al portal oficial de capacitación.<br>2️⃣ Inicia sesión con tu usuario y contraseña institucional.<br>3️⃣ Dirígete al menú 'Historial de cursos'.<br>4️⃣ Localiza el curso que completaste.<br>5️⃣ Haz clic en 'Descargar constancia'.<br><br>➡️ Accede directamente aquí: <a href='https://www.personal.unam.mx/dgpe/' target='_blank'>https://www.personal.unam.mx/dgpe/</a>"],
+    ]},
+
+    { title: "🏢 Oficina Virtual y DGPE", items: [
+      ["¿Cómo entro a la oficina virtual?", "Es necesario ingresar a <a href='https://www.personal.unam.mx' target='_blank'>www.personal.unam.mx</a>.<br><br> 🔹 Da clic en la opción <strong>Oficina Virtual</strong>:<br> <img src='img/oficina_virtual.png' alt='Ubicación del botón Oficina Virtual' style='max-width:100%; border-radius:10px; margin-top:5px;'><br><br> 🔹 Posteriormente, ingresa tu <strong>RFC</strong> y <strong>NIP</strong> en el Sistema de Autenticación:<br> <img src='img/login_unam.png' alt='Pantalla de acceso RFC y NIP' style='max-width:100%; border-radius:10px; margin-top:5px;'>"],
+      ["¿En qué parte de la oficina virtual están las constancias?", "<br> 1. Localizar la sección de “Información Personal”, y hacer clic en la opción “Expediente”, <br> 2. Seleccionar la opción <strong> Capacitación > Cursos Confianza </strong> <br> 3. Identificar el nombre del evento, <br> 4.Hacer clic en el botón “Descargar”."],
+      ["Estoy en la página de la DGPE, ¿En qué parte puedo ver el programa de capacitación?", ""]
+    ]},
+
+    { 
+    title: "📨 Trámites Administrativos", items: [
+      ["¿En dónde están ubicados?, para enviar correspondencia.", ""],
+      ["¿Cuál es la extensión de tal..?", ""],
+      ["¿Es necesario enviar en físico el oficio de autorización de mi jefe para tomar mi curso?", "No, puede enviarlo por correo electrónico a <a href='mailto:scye_capacitacion@dgp.unam.mx'>scye_capacitacion@dgp.unam.mx</a>."],
+      ["¿Mi jefe debe mandar un oficio autorizando mi participación en el curso?", "Sí, esta acción es necesaria únicamente cuando ya se ha alcanzado el límite de seis cursos registrados en el año. Favor de enviarlo al correo <a href='mailto:scye_capacitacion@dgp.unam.mx'>scye_capacitacion@dgp.unam.mx</a>."],
+      ["¿Si entro a la plataforma, yo puedo inscribir a mi jefe?", ""]
+    ]
+  },
+];
+function showFAQ(){
+  chatContent.innerHTML="";
+  faqSections.forEach((sec,index)=>{
+    const det=document.createElement('details');
+    const sum=document.createElement('summary');
+    sum.textContent=sec.title;
+    det.appendChild(sum);
+
+    sum.onclick=()=>{faqSections.forEach((_,i)=>{if(i!==index) document.querySelectorAll('details')[i].style.display='none';});}
+
+    sec.items.forEach(([q,a])=>{
+      const b=document.createElement('button');
+      b.classList.add('faq-btn');
+      b.textContent=q;
+      b.onclick=()=>{
+        appendMessage("Tú",q,"user"); 
+        typeMessage(a);
+        // Después de responder FAQ, preguntar si necesitan más ayuda
+        setTimeout(() => {
+          typeMessage("😊 ¿Necesitas algo más? Escribe 'Sí' para volver al menú principal o 'No' para finalizar.");
+          waitingMoreHelp = true;
+        }, 60 * 18000); // ⏰ 1 minutos (60,000 milisegundos)
+
+      };
+      det.appendChild(b);
+    });
+
+    const customBtn=document.createElement('button');
+    customBtn.classList.add('faq-btn');
+    customBtn.textContent="📌 ESCRIBA SU DUDA ";
+    customBtn.onclick=()=>{appendMessage("Tú","[Duda personalizada]","user"); typeMessage("Escribe tu duda en el cuadro de texto y te responderé.");};
+    det.appendChild(customBtn);
+
+    const backBtn=document.createElement('button');
+    backBtn.classList.add('back-btn');
+    backBtn.textContent="🔙 VOLVER AL MENÚ PRINCIPAL";
+    backBtn.onclick=()=>{showFAQ();}
+    det.appendChild(backBtn);
+
+    chatContent.appendChild(det);
+  });
+  chatContent.scrollTop=chatContent.scrollHeight;
+}
+
+// Escuchar cambios en la conexión a internet
+// 🔹 Detectar conexión al cargar la página (por si el lugar no tiene internet)
+window.addEventListener('load', () => {
+  if (!navigator.onLine) {
+    // Si el chat ya está abierto
+    if (chatBoxContainer.style.display === 'flex') {
+      typeMessage("⚠️ Este dispositivo no tiene conexión a internet. El chatbot no funcionará hasta que se restablezca la conexión.");
+    } else {
+      // Si el chat aún no se ha abierto, mostrar alerta general
+      alert("⚠️ Este dispositivo no tiene conexión a internet. El chatbot no funcionará hasta que se restablezca la conexión.");
+    }
+  }
+});
+
+// 🔹 Avisar pero permitir seguir usando el chatbot sin internet
+window.addEventListener('offline', () => {
+  offlineMode = true;
+  if (chatBoxContainer.style.display === 'flex') {
+    typeMessage("⚠️ Se ha perdido la conexión a internet, pero puedes seguir usando PumAI normalmente. 💛 Tus comentarios se guardarán localmente y se subirán cuando vuelva la conexión.");
+  } else {
+    alert("⚠️ Sin conexión. El chatbot funcionará en modo local hasta que regrese el internet.");
+  }
+});
+
+// 🔄 Sincronizar comentarios locales cuando vuelve la conexión
+window.addEventListener("online", () => {
+  offlineMode = false;
+  if (localStorage.getItem("comentariosOffline")) {
+    const pendientes = JSON.parse(localStorage.getItem("comentariosOffline"));
+    pendientes.forEach(c => {
+      const nuevaRef = database.ref('comentarios').push();
+      nuevaRef.set(c);
+    });
+    localStorage.removeItem("comentariosOffline");
+    alert("✅ Comentarios locales sincronizados con Firebase.");
+  }
+  typeMessage("✅ ¡Conexión restaurada! Puedes seguir usando el chatbot con normalidad.");
+});
+
+
+</script>
+</body>
+</html>
